@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/aishuchen/goctl-swagger/render"
-	"github.com/urfave/cli/v2"
 	"os"
 	"runtime"
+
+	"github.com/aishuchen/goctl-swagger/render"
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 					Usage: "api request address",
 				},
 				&cli.StringFlag{
-					Name:  "basepath",
+					Name:  "basePath",
 					Usage: "url request prefix",
 				},
 				&cli.StringFlag{
@@ -32,6 +33,10 @@ var (
 				&cli.StringFlag{
 					Name:  "schemes",
 					Usage: "swagger support schemes: http, https, ws, wss",
+				},
+				&cli.StringFlag{
+					Name:  "tagPrefix",
+					Usage: "add prefix on operation's tags",
 				},
 			},
 		},

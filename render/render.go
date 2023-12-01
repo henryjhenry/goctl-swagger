@@ -2,12 +2,13 @@ package render
 
 import (
 	"bytes"
-	"github.com/aishuchen/goctl-swagger/render/types"
-	"github.com/aishuchen/goctl-swagger/render/v2"
-	"github.com/urfave/cli/v2"
-	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 	"os"
 	"strings"
+
+	"github.com/aishuchen/goctl-swagger/render/types"
+	v2 "github.com/aishuchen/goctl-swagger/render/v2"
+	"github.com/urfave/cli/v2"
+	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
 func Render(plg *plugin.Plugin, opt types.Option) error {
@@ -78,9 +79,10 @@ func writeFile(path string, buffer *bytes.Buffer) error {
 
 func Do(ctx *cli.Context) error {
 	target := ctx.String("target")
-	basepath := ctx.String("basepath")
+	basepath := ctx.String("basePath")
 	host := ctx.String("host")
 	scheme := ctx.String("schemes")
+	tagPrefix := ctx.String("tagPrefix")
 	var schemes []string
 	if len(scheme) > 0 {
 		schemes = strings.Split(scheme, ",")
@@ -90,8 +92,9 @@ func Do(ctx *cli.Context) error {
 		BasePath:   basepath,
 		Schemes:    schemes,
 		Target:     target,
-		Version:    "2.0",  // TODO: can be configurable
-		RenderType: "json", // TODO: can be configurable
+		Version:    "2.0",  // TODO: make configurable
+		RenderType: "json", // TODO: make configurable
+		TagPrefix:  tagPrefix,
 	}
 	p, err := plugin.NewPlugin()
 	if err != nil {

@@ -1,17 +1,22 @@
 package v2
 
 import (
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"net/http"
 	"strings"
+
+	"github.com/aishuchen/goctl-swagger/render/types"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func renderPaths(svc spec.Service) map[string]*Path {
+func renderPaths(svc spec.Service, opt types.Option) map[string]*Path {
 	paths := make(map[string]*Path)
 	tags := svc.Name
 	for _, grp := range svc.Groups {
 		if value := grp.GetAnnotation("group"); len(value) > 0 {
 			tags = value
+		}
+		if len(opt.TagPrefix) > 0 {
+			tags = opt.TagPrefix + tags
 		}
 		for _, route := range grp.Routes {
 			uri := grp.GetAnnotation("prefix") + route.Path

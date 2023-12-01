@@ -1,9 +1,10 @@
 package v2
 
 import (
+	"strings"
+
 	"github.com/aishuchen/goctl-swagger/render/types"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
-	"strings"
 )
 
 type Renderer struct {
@@ -24,7 +25,7 @@ func (r *Renderer) Render(plg *plugin.Plugin, opt types.Option) (types.Swagger, 
 		Version:     plg.Api.Info.Properties["version"],
 		Contact:     contact,
 	}
-	paths := renderPaths(plg.Api.Service)
+	paths := renderPaths(plg.Api.Service, opt)
 	swagger := &Swagger{
 		Swagger:  "2.0",
 		Info:     info,

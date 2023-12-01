@@ -22,6 +22,7 @@ func TestRender20(t *testing.T) {
 		Target:     outPath,
 		Version:    "2.0",
 		RenderType: "json",
+		TagPrefix: "cdn-http/",
 	}
 	if err := Render(plg, opt); err != nil {
 		t.Fatal(err)

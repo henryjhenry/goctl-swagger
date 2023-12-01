@@ -21,7 +21,7 @@ func renderSchema(obj spec.DefineStruct) (string, *Schema) {
 	schema := &Schema{
 		Type: "object",
 	}
-	properties := make(map[string]*Schema, len(obj.Members))
+	properties := make(Properties, 0, len(obj.Members))
 	var requiredProps []string
 	for _, field := range obj.Members {
 		if field.Name == "" { // 匿名字段一定是结构体
@@ -30,21 +30,21 @@ func renderSchema(obj spec.DefineStruct) (string, *Schema) {
 				continue
 			}
 			_, s := renderSchema(stru)
-			for k, v := range s.Properties {
-				properties[k] = v
-				if v.required {
-					requiredProps = append(requiredProps, k)
+			for _, v := range s.Properties {
+				properties = append(properties, v)
+				if v.Schema.required {
+					requiredProps = append(requiredProps, v.Name)
 				}
 			}
 			continue
 		}
-		key, prop := renderProperty(field)
-		if prop == nil {
+		prop := renderProperty(field)
+		if prop.Schema == nil {
 			continue
 		}
-		properties[key] = prop
-		if prop.required {
-			requiredProps = append(requiredProps, key)
+		properties = append(properties, prop)
+		if prop.Schema.required {
+			requiredProps = append(requiredProps, prop.Name)
 		}
 	}
 	schema.Properties = properties
@@ -54,31 +54,30 @@ func renderSchema(obj spec.DefineStruct) (string, *Schema) {
 	return obj.Name(), schema
 }
 
-func renderProperty(field spec.Member) (string, *Schema) {
-
+func renderProperty(field spec.Member) Property {
 	tags := field.Tags()
 	if len(tags) == 0 {
-		return "", nil
+		return Property{}
 	}
 	tag := lookupGozeroTag(tags)
 	if tag == nil || tag.Key != types.JsonTagKey {
-		return "", nil
+		return Property{}
 	}
-	var prop *Schema
+	var schema *Schema
 	typ := field.Type
 	if stru, ok := asDefineStruct(typ); ok {
-		_, prop = renderSchema(stru)
+		_, schema = renderSchema(stru)
 	} else if array, ok := asArrayType(typ); ok {
-		prop = renderArrayProperty(array)
-		prop.Description = parseComment(field.Comment) // reset description
+		schema = renderArrayProperty(array)
+		schema.Description = parseComment(field.Comment) // reset description
 	} else {
-		prop = renderPrimitiveProperty(field)
+		schema = renderPrimitiveProperty(field)
 	}
-	if prop == nil {
-		return "", nil
+	if schema == nil {
+		return Property{}
 	}
-	prop.required = !isOptionalTag(tag)
-	return tag.Name, prop
+	schema.required = !isOptionalTag(tag)
+	return Property{Name: tag.Name, Schema: schema}
 }
 
 func _renderPrimitiveProperty(typ spec.PrimitiveType) *Schema {

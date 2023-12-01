@@ -11,7 +11,7 @@ func register(typ spec.DefineStruct) {
 }
 
 func registerTypes(types []spec.Type) {
-	for i, _ := range types {
+	for i := range types {
 		if stru, ok := asDefineStruct(types[i]); ok {
 			register(stru)
 		}

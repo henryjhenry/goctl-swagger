@@ -11,6 +11,7 @@ type Option struct {
 	RenderType string
 	Version    string
 	Target     string
+	TagPrefix  string
 }
 
 type Renderer interface {

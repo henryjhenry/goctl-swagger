@@ -3,6 +3,7 @@ package v2
 import (
 	"bytes"
 	"encoding/json"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -113,21 +114,50 @@ type ParameterItems struct {
 
 // Schema Object allows the definition of input and output data types.
 type Schema struct {
-	Ref                  string             `json:"$ref,omitempty" yaml:"$ref,omitempty"`
-	Title                string             `json:"title,omitempty" yaml:"title,omitempty"`
-	Description          string             `json:"description,omitempty" yaml:"description,omitempty"`
-	Default              interface{}        `json:"default,omitempty" yaml:"default,omitempty"`
-	Type                 string             `json:"type,omitempty" yaml:"type,omitempty"`
-	Example              string             `json:"example,omitempty" yaml:"example,omitempty"`
-	Required             []string           `json:"required,omitempty" yaml:"required,omitempty"`
-	Format               string             `json:"format,omitempty" yaml:"format,omitempty"`
-	ReadOnly             bool               `json:"readOnly,omitempty" yaml:"readOnly,omitempty"`
-	Items                *Schema            `json:"items,omitempty" yaml:"items,omitempty"`
-	AllOf                []*Schema          `json:"allOf,omitempty" yaml:"allOf,omitempty"`
-	Properties           map[string]*Schema `json:"properties,omitempty" yaml:"properties,omitempty"`
-	AdditionalProperties *Schema            `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
+	Ref                  string      `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	Title                string      `json:"title,omitempty" yaml:"title,omitempty"`
+	Description          string      `json:"description,omitempty" yaml:"description,omitempty"`
+	Default              interface{} `json:"default,omitempty" yaml:"default,omitempty"`
+	Type                 string      `json:"type,omitempty" yaml:"type,omitempty"`
+	Example              string      `json:"example,omitempty" yaml:"example,omitempty"`
+	Required             []string    `json:"required,omitempty" yaml:"required,omitempty"`
+	Format               string      `json:"format,omitempty" yaml:"format,omitempty"`
+	ReadOnly             bool        `json:"readOnly,omitempty" yaml:"readOnly,omitempty"`
+	Items                *Schema     `json:"items,omitempty" yaml:"items,omitempty"`
+	AllOf                []*Schema   `json:"allOf,omitempty" yaml:"allOf,omitempty"`
+	Properties           Properties  `json:"properties,omitempty" yaml:"properties,omitempty"`
+	AdditionalProperties *Schema     `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
 
 	required bool // 当认为 Schema 是 Property 时使用
+}
+
+type Property struct {
+	Name   string
+	Schema *Schema
+}
+
+type Properties []Property
+
+func (props *Properties) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteString("{")
+	for i, prop := range *props {
+		if i != 0 {
+			buf.WriteString(",")
+		}
+		buf.WriteByte('"')
+		buf.WriteString(prop.Name)
+		buf.WriteByte('"')
+		buf.WriteString(":")
+		val, err := json.Marshal(prop.Schema)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(val)
+	}
+
+	buf.WriteString("}")
+	return buf.Bytes(), nil
 }
 
 // Property are taken from the JSON Schema definition but their definitions were adjusted to the Swagger Specification
