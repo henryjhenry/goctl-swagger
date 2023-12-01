@@ -93,26 +93,30 @@ func _renderPrimitiveProperty(typ spec.PrimitiveType) *Schema {
 
 func renderPrimitiveProperty(field spec.Member) *Schema {
 	schema := _renderPrimitiveProperty(field.Type.(spec.PrimitiveType))
-	schema.Description = parseComment(field.Comment)
+	if schema != nil {
+		schema.Description = parseComment(field.Comment)
+	}
 	return schema
 }
 
 func renderArrayProperty(array spec.ArrayType) *Schema {
-	schema := &Schema{
-		Type:        "array",
-		Format:      "",
-		Description: "",
-	}
-	memberTyp := array.Value
+	var (
+		schema = &Schema{
+			Type:        "array",
+			Format:      "",
+			Description: "",
+		}
+		memberTyp = array.Value
+		items     *Schema
+	)
+
 	if stru, ok := asDefineStruct(memberTyp); ok {
-		_, items := renderSchema(stru)
-		schema.Items = items
+		_, items = renderSchema(stru)
 	} else if mArray, ok := asArrayType(memberTyp); ok {
-		items := renderArrayProperty(mArray)
-		schema.Items = items
+		items = renderArrayProperty(mArray)
 	} else {
-		items := _renderPrimitiveProperty(memberTyp.(spec.PrimitiveType))
-		schema.Items = items
+		items = _renderPrimitiveProperty(memberTyp.(spec.PrimitiveType))
 	}
+	schema.Items = items
 	return schema
 }
