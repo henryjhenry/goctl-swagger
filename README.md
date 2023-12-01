@@ -1,5 +1,6 @@
 # goctl-swagger
-
+从 https://github.com/zeromicro/goctl-swagger FORK，但原项目有 bug 且不好修，干脆直接重构一版，目前只支持 swagger v2，预计未来
+支持v3，并支持更灵活的参数
 ### 1. 编译goctl-swagger插件
 
 ```
