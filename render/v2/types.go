@@ -3,6 +3,7 @@ package v2
 import (
 	"bytes"
 	"encoding/json"
+	"sort"
 
 	"gopkg.in/yaml.v3"
 )
@@ -17,7 +18,7 @@ type Swagger struct {
 	Schemes             []string             `json:"schemes,omitempty" yaml:"schemes,omitempty"`
 	Consumes            []string             `json:"consumes,omitempty" yaml:"consumes,omitempty"`
 	Produces            []string             `json:"produces,omitempty" yaml:"produces,omitempty"`
-	Paths               map[string]*Path     `json:"paths" yaml:"paths"`
+	Paths               Paths                `json:"paths" yaml:"paths"`
 	Definitions         map[string]*Schema   `json:"definitions,omitempty" yaml:"definitions,omitempty"`
 	SecurityDefinitions map[string]*Security `json:"securityDefinitions,omitempty" yaml:"securityDefinitions,omitempty"`
 	Security            map[string][]string  `json:"security,omitempty" yaml:"security,omitempty"`
@@ -63,8 +64,39 @@ type License struct {
 	URL  string `json:"url,omitempty" yaml:"url,omitempty"`
 }
 
+type Paths []*Path
+
+func (paths *Paths) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteString("{")
+	for i, path := range *paths {
+		if i != 0 {
+			buf.WriteString(",")
+		}
+		buf.WriteByte('"')
+		buf.WriteString(path.Path)
+		buf.WriteByte('"')
+		buf.WriteString(":")
+		val, err := json.Marshal(&path)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(val)
+	}
+
+	buf.WriteString("}")
+	return buf.Bytes(), nil
+}
+
+func (paths *Paths) Sort() {
+	sort.Slice(*paths, func(i, j int) bool {
+		return (*paths)[i].Path < (*paths)[j].Path
+	})
+}
+
 // Path Describes the operations available on a single path.
 type Path struct {
+	Path    string     `json:"-" yaml:"-"`
 	Ref     string     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 	Get     *Operation `json:"get,omitempty" yaml:"get,omitempty"`
 	Put     *Operation `json:"put,omitempty" yaml:"put,omitempty"`

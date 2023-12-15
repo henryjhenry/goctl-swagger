@@ -8,9 +8,12 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func renderPaths(svc spec.Service, opt types.Option) map[string]*Path {
-	paths := make(map[string]*Path)
-	tags := svc.Name
+func renderPaths(svc spec.Service, opt types.Option) Paths {
+	var (
+		paths   Paths
+		tags    = svc.Name
+		pathMap = make(map[string]*Path)
+	)
 	for _, grp := range svc.Groups {
 		if value := grp.GetAnnotation("group"); len(value) > 0 {
 			tags = value
@@ -23,9 +26,15 @@ func renderPaths(svc spec.Service, opt types.Option) map[string]*Path {
 			if uri[0] != '/' {
 				uri = "/" + uri
 			}
-			path, ok := paths[uri]
-			if !ok {
-				path = new(Path)
+			var (
+				path  *Path
+				isNew bool
+			)
+			if obj, ok := pathMap[uri]; ok {
+				path = obj
+			} else {
+				isNew = true
+				path = &Path{Path: uri}
 			}
 			op := Operation{
 				Summary: strings.Trim(route.AtDoc.Text, `"`),
@@ -35,7 +44,7 @@ func renderPaths(svc spec.Service, opt types.Option) map[string]*Path {
 				op.Parameters = renderParameters(obj, strings.ToUpper(route.Method))
 			}
 
-			// Just support json response yet.
+			// Just support json response.
 			if obj, ok := route.ResponseType.(spec.DefineStruct); ok {
 				// root schema
 				root := &Schema{
@@ -74,8 +83,12 @@ func renderPaths(svc spec.Service, opt types.Option) map[string]*Path {
 			case http.MethodOptions:
 				path.Options = &op
 			}
-			paths[uri] = path
+			if isNew {
+				paths = append(paths, path)
+				pathMap[uri] = path
+			}
 		}
 	}
+	paths.Sort()
 	return paths
 }

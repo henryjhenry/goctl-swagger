@@ -1,11 +1,12 @@
 package render
 
 import (
+	"os"
+	"testing"
+
 	"github.com/aishuchen/goctl-swagger/render/types"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
-	"os"
-	"testing"
 )
 
 func TestRender20(t *testing.T) {
@@ -22,7 +23,7 @@ func TestRender20(t *testing.T) {
 		Target:     outPath,
 		Version:    "2.0",
 		RenderType: "json",
-		TagPrefix: "cdn-http/",
+		TagPrefix:  "",
 	}
 	if err := Render(plg, opt); err != nil {
 		t.Fatal(err)

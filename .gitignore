@@ -13,6 +13,7 @@ Thumbs.db
 # idea ignore
 .idea/
 *.ipr
+.vscode
 
 #
 .swagger-codegen
