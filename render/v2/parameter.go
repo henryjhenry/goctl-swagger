@@ -3,18 +3,31 @@ package v2
 import (
 	"github.com/aishuchen/goctl-swagger/render/types"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"net/http"
 )
 
-func renderParameters(obj spec.DefineStruct, method string) []*Parameter {
-	var (
-		parameters []*Parameter
-		body       *spec.DefineStruct // request body
-	)
+type member struct {
+	m   spec.Member
+	tag *spec.Tag
+}
 
+type members struct {
+	pathMembers  []member // path parameters
+	queryMembers []member // query parameters
+	bodyMembers  []member // request body
+}
+
+func flatten(obj spec.DefineStruct) *members {
+	var (
+		pathMembers  []member // path parameters
+		queryMembers []member // query parameters
+		bodyMembers  []member // request body
+	)
 	for _, field := range obj.Members {
-		if field.Name == "" { // 匿名字段一定是结构体
-			parameters = append(parameters, renderParameters(field.Type.(spec.DefineStruct), method)...)
+		if field.Name == "" {
+			subMembers := flatten(field.Type.(spec.DefineStruct))
+			pathMembers = append(pathMembers, (*subMembers).pathMembers...)
+			queryMembers = append(queryMembers, (*subMembers).queryMembers...)
+			bodyMembers = append(bodyMembers, (*subMembers).bodyMembers...)
 			continue
 		}
 		tags := field.Tags()
@@ -25,74 +38,125 @@ func renderParameters(obj spec.DefineStruct, method string) []*Parameter {
 		if tag == nil {
 			continue
 		}
-		var param Parameter
-		if method == http.MethodGet { // Don't support body parameters in GET method
-			switch tag.Key {
-			case types.PathTagKey:
-				param.In = "path"
-			case types.FormTagKey:
-				param.In = "query"
-			default:
-				continue // request parameter only support path and query parameters, todo: support header and form parameters
-			}
-		} else {
-			switch tag.Key {
-			case types.PathTagKey:
-				param.In = "path"
-			case types.FormTagKey:
-				param.In = "query"
-			case types.JsonTagKey:
-				body = &obj
+		switch tag.Key {
+		case types.PathTagKey: // path parameter only support primitive type
+			if _, ok := field.Type.(spec.PrimitiveType); !ok {
 				continue
-			default:
-				continue // just support application/json yet. TODO support multipart/form-data
 			}
+			pathMembers = append(pathMembers, member{m: field, tag: tag})
+		case types.FormTagKey: // query parameter only support primitive type
+			if _, ok := field.Type.(spec.PrimitiveType); !ok {
+				continue
+			}
+			queryMembers = append(queryMembers, member{m: field, tag: tag})
+		case types.JsonTagKey:
+			bodyMembers = append(bodyMembers, member{m: field, tag: tag})
 		}
-		param.Name = tag.Name
-		param.Description = parseComment(field.Comment)
-		param.Type, param.Format = rawTypeFormat(field.Type.Name())
-		defaultVal, hasDefault := defaultTag(tag)
+	}
+
+	return &members{pathMembers: pathMembers, queryMembers: queryMembers, bodyMembers: bodyMembers}
+}
+
+func renderParameters(obj spec.DefineStruct, method string) []*Parameter {
+	members := flatten(obj)
+	params := make([]*Parameter, 0, len((*members).pathMembers)+len((*members).queryMembers)+1)
+	pathParams := renderPathParameters((*members).pathMembers)
+	queryParams := renderQueryParameters((*members).queryMembers)
+	params = append(append(params, pathParams...), queryParams...)
+	body := renderRequestBody(obj.Name(), (*members).bodyMembers)
+	if body != nil {
+		params = append(params, body)
+	}
+	return params
+}
+
+func renderPathParameters(members []member) []*Parameter {
+	if len(members) == 0 {
+		return nil
+	}
+	parameters := make([]*Parameter, len(members))
+	for i, m := range members {
+		var param Parameter
+		param.In = "path"
+		param.Name = m.tag.Name
+		param.Description = parseComment(m.m.Comment)
+		param.Type, param.Format = rawTypeFormat(m.m.Type.Name())
+		defaultVal, hasDefault := defaultTag(m.tag)
 		if hasDefault {
 			param.Required = false
 			param.Default = defaultVal
 		} else {
-			param.Required = !isOptionalTag(tag)
+			param.Required = !isOptionalTag(m.tag)
 		}
-
-		parameters = append(parameters, &param)
-	}
-	if body != nil {
-		parameters = append(parameters, renderRequestBody(*body))
+		parameters[i] = &param
 	}
 	return parameters
 }
 
-func renderRequestBody(body spec.DefineStruct) *Parameter {
+func renderQueryParameters(members []member) []*Parameter {
+	if len(members) == 0 {
+		return nil
+	}
+	parameters := make([]*Parameter, len(members))
+	for i, m := range members {
+		var param Parameter
+		param.In = "query"
+		param.Name = m.tag.Name
+		param.Description = parseComment(m.m.Comment)
+		param.Type, param.Format = rawTypeFormat(m.m.Type.Name())
+		defaultVal, hasDefault := defaultTag(m.tag)
+		if hasDefault {
+			param.Required = false
+			param.Default = defaultVal
+		} else {
+			param.Required = !isOptionalTag(m.tag)
+		}
+		parameters[i] = &param
+	}
+	return parameters
+}
+
+func renderRequestBody(name string, members []member) *Parameter {
+	if len(members) == 0 {
+		return nil
+	}
 	param := Parameter{
 		Name: "body",
 		In:   "body",
-		Schema: &Schema{
-			Type: "object",
-		},
 	}
-
-	name, schema := renderSchema(body)
-	ref := registerModel(name, schema)
-	param.Schema.Ref = ref
+	var (
+		schema = &Schema{Type: "object"}
+		props  = make(Properties, 0, len(members))
+	)
+	for _, m := range members {
+		var prop Property
+		if stru, ok := asDefineStruct(m.m.Type); ok {
+			name, sc := renderSchema(stru)
+			if prop.Schema == nil {
+				continue
+			}
+			prop = Property{Name: m.tag.Name, Schema: &Schema{Ref: registerModel(name, sc)}}
+			prop.Schema.required = !isOptionalTag(m.tag)
+			props = append(props, prop)
+			continue
+		}
+		if array, ok := asArrayType(m.m.Type); ok {
+			sc := renderArrayProperty(array)
+			sc.Description = parseComment(m.m.Comment)
+			prop = Property{Name: m.tag.Name, Schema: sc}
+			prop.Schema.required = !isOptionalTag(m.tag)
+			props = append(props, prop)
+			continue
+		}
+		sc := renderPrimitiveProperty(m.m)
+		if sc == nil {
+			continue
+		}
+		prop = Property{Name: m.tag.Name, Schema: sc}
+		prop.Schema.required = !isOptionalTag(m.tag)
+		props = append(props, prop)
+	}
+	schema.Properties = props
+	param.Schema = &Schema{Ref: registerModel(name, schema)}
 	return &param
-}
-
-func defaultValue(val, typ string) any {
-	switch typ {
-	case "string":
-		return val
-	case "integer":
-		return val
-	case "boolean":
-		return val
-	case "number":
-		return val
-	default:
-		return val
-	}
 }

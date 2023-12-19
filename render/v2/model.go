@@ -9,6 +9,9 @@ var models = make(map[string]*Schema)
 
 func registerModel(name string, schema *Schema) string {
 	ref := "#/definitions/" + name
+	if _, ok := models[ref]; ok {
+		return ref // do not register twice
+	}
 	models[name] = schema
 	return ref
 }
