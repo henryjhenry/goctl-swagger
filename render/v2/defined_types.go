@@ -22,3 +22,11 @@ func findType(name string) (spec.DefineStruct, bool) {
 	obj, ok := registeredTypes[name]
 	return obj, ok
 }
+
+func mustFindType(name string) spec.DefineStruct {
+	obj, ok := findType(name)
+	if !ok {
+		panic("unknown type: " + name)
+	}
+	return obj
+}

@@ -16,6 +16,7 @@ type members struct {
 	bodyMembers  []member // request body
 }
 
+// flatten flattens the struct and make it easier to render
 func flatten(obj spec.DefineStruct) *members {
 	var (
 		pathMembers  []member // path parameters
@@ -24,7 +25,8 @@ func flatten(obj spec.DefineStruct) *members {
 	)
 	for _, field := range obj.Members {
 		if field.Name == "" {
-			subMembers := flatten(field.Type.(spec.DefineStruct))
+			stru, _ := asDefineStruct(field.Type)
+			subMembers := flatten(mustFindType(stru.RawName))
 			pathMembers = append(pathMembers, (*subMembers).pathMembers...)
 			queryMembers = append(queryMembers, (*subMembers).queryMembers...)
 			bodyMembers = append(bodyMembers, (*subMembers).bodyMembers...)
@@ -125,38 +127,33 @@ func renderRequestBody(name string, members []member) *Parameter {
 		In:   "body",
 	}
 	var (
-		schema = &Schema{Type: "object"}
-		props  = make(Properties, 0, len(members))
+		schema        = &Schema{Type: "object"}
+		props         = make(Properties, 0, len(members))
+		requiredProps []string
 	)
 	for _, m := range members {
 		var prop Property
 		if stru, ok := asDefineStruct(m.m.Type); ok {
 			name, sc := renderSchema(stru)
-			if prop.Schema == nil {
-				continue
-			}
 			prop = Property{Name: m.tag.Name, Schema: &Schema{Ref: registerModel(name, sc)}}
-			prop.Schema.required = !isOptionalTag(m.tag)
-			props = append(props, prop)
-			continue
-		}
-		if array, ok := asArrayType(m.m.Type); ok {
+		} else if array, ok := asArrayType(m.m.Type); ok {
 			sc := renderArrayProperty(array)
 			sc.Description = parseComment(m.m.Comment)
 			prop = Property{Name: m.tag.Name, Schema: sc}
-			prop.Schema.required = !isOptionalTag(m.tag)
-			props = append(props, prop)
-			continue
+		} else {
+			sc := renderPrimitiveProperty(m.m)
+			if sc == nil {
+				continue
+			}
+			prop = Property{Name: m.tag.Name, Schema: sc}
 		}
-		sc := renderPrimitiveProperty(m.m)
-		if sc == nil {
-			continue
+		if !isOptionalTag(m.tag) {
+			requiredProps = append(requiredProps, prop.Name)
 		}
-		prop = Property{Name: m.tag.Name, Schema: sc}
-		prop.Schema.required = !isOptionalTag(m.tag)
 		props = append(props, prop)
 	}
 	schema.Properties = props
+	schema.Required = requiredProps
 	param.Schema = &Schema{Ref: registerModel(name, schema)}
 	return &param
 }
