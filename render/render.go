@@ -83,18 +83,21 @@ func Do(ctx *cli.Context) error {
 	host := ctx.String("host")
 	scheme := ctx.String("schemes")
 	tagPrefix := ctx.String("tagPrefix")
+	osc := ctx.String("outsideSchema")
+
 	var schemes []string
 	if len(scheme) > 0 {
 		schemes = strings.Split(scheme, ",")
 	}
 	opt := types.Option{
-		Host:       host,
-		BasePath:   basepath,
-		Schemes:    schemes,
-		Target:     target,
-		Version:    "2.0",  // TODO: make configurable
-		RenderType: "json", // TODO: make configurable
-		TagPrefix:  tagPrefix,
+		Host:          host,
+		BasePath:      basepath,
+		Schemes:       schemes,
+		Target:        target,
+		Version:       "2.0",  // TODO: make configurable
+		RenderType:    "json", // TODO: make configurable
+		TagPrefix:     tagPrefix,
+		OutsideSchema: osc,
 	}
 	p, err := plugin.NewPlugin()
 	if err != nil {

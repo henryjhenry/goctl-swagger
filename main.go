@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 
@@ -10,7 +11,7 @@ import (
 )
 
 var (
-	version  = "0.0.1"
+	version  = "0.0.2"
 	commands = []*cli.Command{
 		{
 			Name:  "swagger",
@@ -38,17 +39,26 @@ var (
 					Name:  "tagPrefix",
 					Usage: "add prefix on operation's tags",
 				},
+				&cli.StringFlag{
+					Name:  "outsideSchema",
+					Usage: "add outside schema api file",
+				},
 			},
 		},
 	}
 )
 
 func main() {
+	logger := log.Default()
 	app := cli.NewApp()
 	app.Usage = "a plugin of goctl to generate swagger json file"
 	app.Version = fmt.Sprintf("%s %s/%s", version, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
+	//cwd, err := os.Getwd()
+	//if err != nil {
+	//	panic(err)
+	//}
 	if err := app.Run(os.Args); err != nil {
-		fmt.Printf("goctl-swagger: %+v\n", err)
+		logger.Fatalf("goctl-swagger: %+v\n", err)
 	}
 }

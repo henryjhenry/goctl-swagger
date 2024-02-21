@@ -19,11 +19,13 @@ func TestRender20(t *testing.T) {
 		Api: apiSpec,
 	}
 	outPath := os.Getenv("SWAGGER_OUT_PATH")
+	outSideSchema := os.Getenv("SWAGGER_OUTSIDE_SCHEMA")
 	opt := types.Option{
-		Target:     outPath,
-		Version:    "2.0",
-		RenderType: "json",
-		TagPrefix:  "",
+		Target:        outPath,
+		Version:       "2.0",
+		RenderType:    "json",
+		TagPrefix:     "",
+		OutsideSchema: outSideSchema,
 	}
 	if err := Render(plg, opt); err != nil {
 		t.Fatal(err)

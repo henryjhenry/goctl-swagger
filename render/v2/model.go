@@ -17,10 +17,7 @@ func registerModel(name string, schema *Schema) string {
 }
 
 func renderSchema(obj spec.DefineStruct) (string, *Schema) {
-	obj, ok := findType(obj.RawName) // go zero 解析路由时，结构体的 Member 会缺失，找到原始定义
-	if !ok {
-		panic("unknown type: " + obj.RawName)
-	}
+	obj = mustFindType(obj.RawName) // go zero 解析路由时，结构体的 Member 会缺失，找到原始定义
 	schema := &Schema{
 		Type: "object",
 	}

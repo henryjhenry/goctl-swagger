@@ -5,13 +5,14 @@ import (
 )
 
 type Option struct {
-	Host       string
-	BasePath   string
-	Schemes    []string
-	RenderType string
-	Version    string
-	Target     string
-	TagPrefix  string
+	Host          string
+	BasePath      string
+	Schemes       []string
+	RenderType    string
+	Version       string
+	Target        string
+	TagPrefix     string
+	OutsideSchema string
 }
 
 type Renderer interface {

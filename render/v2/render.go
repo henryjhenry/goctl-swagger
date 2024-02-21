@@ -1,13 +1,21 @@
 package v2
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/aishuchen/goctl-swagger/render/types"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
 type Renderer struct {
+}
+
+type option struct {
+	types.Option
+	outsideSchema *spec.DefineStruct
 }
 
 func (r *Renderer) Render(plg *plugin.Plugin, opt types.Option) (types.Swagger, error) {
@@ -25,7 +33,21 @@ func (r *Renderer) Render(plg *plugin.Plugin, opt types.Option) (types.Swagger, 
 		Version:     plg.Api.Info.Properties["version"],
 		Contact:     contact,
 	}
-	paths := renderPaths(plg.Api.Service, opt)
+	_opt := option{
+		Option: opt,
+	}
+	oscPath, err := filepath.Abs(filepath.Join(plg.Dir, opt.OutsideSchema))
+	if err != nil {
+		return nil, err
+	}
+	if opt.OutsideSchema != "" {
+		stru, err := readOutsideSchema(oscPath)
+		if err != nil {
+			return nil, err
+		}
+		_opt.outsideSchema = stru
+	}
+	paths := renderPaths(plg.Api.Service, _opt)
 	swagger := &Swagger{
 		Swagger:  "2.0",
 		Info:     info,
@@ -36,4 +58,20 @@ func (r *Renderer) Render(plg *plugin.Plugin, opt types.Option) (types.Swagger, 
 	}
 	swagger.Definitions = models
 	return swagger, nil
+}
+
+func readOutsideSchema(path string) (*spec.DefineStruct, error) {
+	apiSpec, err := parser.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+	if len(apiSpec.Types) == 0 {
+		return nil, nil
+	}
+
+	typ := apiSpec.Types[0]
+	if stru, ok := typ.(spec.DefineStruct); ok {
+		return &stru, nil
+	}
+	return nil, nil
 }
