@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aishuchen/goctl-swagger/render/types"
+	"github.com/henryjhenry/goctl-swagger/render/types"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
@@ -17,15 +17,15 @@ func TestRender20(t *testing.T) {
 	}
 	plg := &plugin.Plugin{
 		Api: apiSpec,
+		Dir: ".",
 	}
-	outPath := os.Getenv("SWAGGER_OUT_PATH")
-	outSideSchema := os.Getenv("SWAGGER_OUTSIDE_SCHEMA")
+	outsideSchema := os.Getenv("SWAGGER_OUTSIDE_SCHEMA")
 	opt := types.Option{
-		Target:        outPath,
+		Target:        "../swagger.json",
 		Version:       "2.0",
 		RenderType:    "json",
 		TagPrefix:     "",
-		OutsideSchema: outSideSchema,
+		OutsideSchema: outsideSchema,
 	}
 	if err := Render(plg, opt); err != nil {
 		t.Fatal(err)

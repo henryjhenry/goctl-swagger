@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/aishuchen/goctl-swagger/render"
+	"github.com/henryjhenry/goctl-swagger/render"
 	"github.com/urfave/cli/v2"
 )
 

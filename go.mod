@@ -1,4 +1,4 @@
-module github.com/aishuchen/goctl-swagger
+module github.com/henryjhenry/goctl-swagger
 
 go 1.19
 

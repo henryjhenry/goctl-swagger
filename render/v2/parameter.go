@@ -1,7 +1,7 @@
 package v2
 
 import (
-	"github.com/aishuchen/goctl-swagger/render/types"
+	"github.com/henryjhenry/goctl-swagger/render/types"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 

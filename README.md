@@ -4,7 +4,7 @@
 ### 1. 编译goctl-swagger插件
 
 ```
-GOPROXY=https://goproxy.cn/,direct go install github.com/aishuchen/goctl-swagger@latest
+GOPROXY=https://goproxy.cn/,direct go install github.com/henryjhenry/goctl-swagger@latest
 ```
 
 ### 2. 配置环境
@@ -81,13 +81,13 @@ GOPROXY=https://goproxy.cn/,direct go install github.com/aishuchen/goctl-swagger
     }
     ```
 
-* 生成swagger.json 文件
-
+* 生成 swagger.json 文件
     ```shell script
-    # 在goctl中使用
-    goctl api plugin -plugin goctl-swagger="swagger -target user.json" -api user.api -dir .
-    # 在本地使用
-    go run main.go swagger -target swagger.json 0<~/tmp.json
+        # 在goctl中使用
+        goctl api plugin -plugin goctl-swagger="swagger -target swagger.json" -api user.api -dir .
+
+        # 在本地使用
+        go run main.go swagger -target swagger.json 0<~/tmp.json
     ```
     tmp.json:
     ```json
@@ -119,3 +119,14 @@ GOPROXY=https://goproxy.cn/,direct go install github.com/aishuchen/goctl-swagger
       -o "/go-work/clients/$l"
   done
    ```
+
+### 4. run test
+```bash
+cd goctl-swagger
+export GOCTL_API_PATH=/your/api/path
+export SWAGGER_OUTSIDE_SCHEMA=/your/outside_schema/path
+go test ./render --count=1 -v
+``` 
+运行完毕后，会生成 swagger.json。
+
+暂未实现对生成文件的校验。

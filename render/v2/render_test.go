@@ -1,11 +1,12 @@
 package v2
 
 import (
-	"github.com/aishuchen/goctl-swagger/render/types"
-	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 	"os"
 	"testing"
+
+	"github.com/henryjhenry/goctl-swagger/render/types"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
 func TestRenderer_Render(t *testing.T) {

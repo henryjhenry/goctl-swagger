@@ -1,10 +1,11 @@
 package v2
 
 import (
-	"github.com/aishuchen/goctl-swagger/render/types"
+	"strings"
+
+	"github.com/henryjhenry/goctl-swagger/render/types"
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"strings"
 )
 
 func lookupGozeroTag(tags []*spec.Tag) *spec.Tag {

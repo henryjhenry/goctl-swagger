@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aishuchen/goctl-swagger/render/types"
+	"github.com/henryjhenry/goctl-swagger/render/types"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
@@ -36,10 +36,15 @@ func (r *Renderer) Render(plg *plugin.Plugin, opt types.Option) (types.Swagger, 
 	_opt := option{
 		Option: opt,
 	}
-	oscPath, err := filepath.Abs(filepath.Join(plg.Dir, opt.OutsideSchema))
-	if err != nil {
-		return nil, err
+	var oscPath string // outside schema path
+	if filepath.IsAbs(opt.OutsideSchema) {
+		oscPath = opt.OutsideSchema
+	} else {
+		oscPath = filepath.Join(plg.Dir, opt.OutsideSchema)
 	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 	if opt.OutsideSchema != "" {
 		stru, err := readOutsideSchema(oscPath)
 		if err != nil {

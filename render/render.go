@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/aishuchen/goctl-swagger/render/types"
-	v2 "github.com/aishuchen/goctl-swagger/render/v2"
+	"github.com/henryjhenry/goctl-swagger/render/types"
+	v2 "github.com/henryjhenry/goctl-swagger/render/v2"
 	"github.com/urfave/cli/v2"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
