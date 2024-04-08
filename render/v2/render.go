@@ -36,16 +36,14 @@ func (r *Renderer) Render(plg *plugin.Plugin, opt types.Option) (types.Swagger, 
 	_opt := option{
 		Option: opt,
 	}
-	var oscPath string // outside schema path
-	if filepath.IsAbs(opt.OutsideSchema) {
-		oscPath = opt.OutsideSchema
-	} else {
-		oscPath = filepath.Join(plg.Dir, opt.OutsideSchema)
-	}
-	// if err != nil {
-	// 	return nil, err
-	// }
+
 	if opt.OutsideSchema != "" {
+		var oscPath string // outside schema path
+		if filepath.IsAbs(opt.OutsideSchema) {
+			oscPath = opt.OutsideSchema
+		} else {
+			oscPath = filepath.Join(plg.Dir, opt.OutsideSchema)
+		}
 		stru, err := readOutsideSchema(oscPath)
 		if err != nil {
 			return nil, err
@@ -56,6 +54,8 @@ func (r *Renderer) Render(plg *plugin.Plugin, opt types.Option) (types.Swagger, 
 	swagger := &Swagger{
 		Swagger:  "2.0",
 		Info:     info,
+		Host:     opt.Host,
+		BasePath: opt.BasePath,
 		Consumes: []string{"application/json"},
 		Produces: []string{"application/json"},
 		Paths:    paths,

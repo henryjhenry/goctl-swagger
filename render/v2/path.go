@@ -12,7 +12,7 @@ func renderPaths(svc spec.Service, opt option) Paths {
 	var (
 		paths   Paths
 		tags    = svc.Name
-		pathMap = make(map[string]*Path)
+		pathSet = make(map[string]*Path)
 	)
 	for _, grp := range svc.Groups {
 		if value := grp.GetAnnotation("group"); len(value) > 0 {
@@ -26,15 +26,12 @@ func renderPaths(svc spec.Service, opt option) Paths {
 			if uri[0] != '/' {
 				uri = "/" + uri
 			}
-			var (
-				path  *Path
-				isNew bool
-			)
-			if obj, ok := pathMap[uri]; ok {
-				path = obj
-			} else {
-				isNew = true
+			// 确保rest api只生成一个 path
+			path, exists := pathSet[uri]
+			if !exists {
 				path = &Path{Path: uri}
+				pathSet[uri] = path
+				paths = append(paths, path)
 			}
 			op := Operation{
 				Summary: strings.Trim(route.AtDoc.Text, `"`),
@@ -51,7 +48,7 @@ func renderPaths(svc spec.Service, opt option) Paths {
 				op.Responses = map[string]*Response{
 					"200": {
 						Description: "OK",
-						Schema:      renderRootSchema(opt, obj),
+						Schema:      renderReponse(opt, obj),
 					},
 				}
 
@@ -78,17 +75,13 @@ func renderPaths(svc spec.Service, opt option) Paths {
 			case http.MethodOptions:
 				path.Options = &op
 			}
-			if isNew {
-				paths = append(paths, path)
-				pathMap[uri] = path
-			}
 		}
 	}
 	paths.Sort()
 	return paths
 }
 
-func renderRootSchema(opt option, obj spec.DefineStruct) (root *Schema) {
+func renderReponse(opt option, obj spec.DefineStruct) (root *Schema) {
 	_, resp := renderSchema(obj)
 	ref := registerModel(obj.Name(), resp)
 	if opt.outsideSchema != nil {

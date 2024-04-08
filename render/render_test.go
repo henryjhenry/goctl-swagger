@@ -26,6 +26,7 @@ func TestRender20(t *testing.T) {
 		RenderType:    "json",
 		TagPrefix:     "",
 		OutsideSchema: outsideSchema,
+		Host:          "http://127.0.0.1:8888",
 	}
 	if err := Render(plg, opt); err != nil {
 		t.Fatal(err)
