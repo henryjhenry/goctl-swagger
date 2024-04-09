@@ -82,7 +82,7 @@ func renderPathParameters(members []member) []*Parameter {
 		param.In = "path"
 		param.Name = m.tag.Name
 		param.Description = parseComment(m.m.Comment)
-		param.Type, param.Format = rawTypeFormat(m.m.Type.Name())
+		param.Type, param.Format = primitiveTypeFormat(m.m.Type.Name())
 		defaultVal, hasDefault := defaultTag(m.tag)
 		if hasDefault {
 			param.Required = false
@@ -105,7 +105,7 @@ func renderQueryParameters(members []member) []*Parameter {
 		param.In = "query"
 		param.Name = m.tag.Name
 		param.Description = parseComment(m.m.Comment)
-		param.Type, param.Format = rawTypeFormat(m.m.Type.Name())
+		param.Type, param.Format = primitiveTypeFormat(m.m.Type.Name())
 		defaultVal, hasDefault := defaultTag(m.tag)
 		if hasDefault {
 			param.Required = false
@@ -140,13 +140,21 @@ func renderRequestBody(name string, members []member) *Parameter {
 			sc := renderArrayProperty(array)
 			sc.Description = parseComment(m.m.Comment)
 			prop = Property{Name: m.tag.Name, Schema: sc}
-		} else {
-			sc := renderPrimitiveProperty(m.m)
+		} else if _, ok := asPrimitiveType(m.m.Type); ok {
+			sc := renderPrimitivePropertyByMember(m.m)
 			if sc == nil {
-				continue
+				panicUnsupportType(m.m.Type)
 			}
 			prop = Property{Name: m.tag.Name, Schema: sc}
+		} else if mapType, ok := asMapType(m.m.Type); ok {
+			sc := renderMapTypeProperty(mapType)
+			sc.Description = parseComment(m.m.Comment)
+			prop = Property{Name: m.tag.Name, Schema: sc}
 		}
+		if prop.Name == "" {
+			panicUnsupportType(m.m.Type)
+		}
+
 		if !isOptionalTag(m.tag) {
 			requiredProps = append(requiredProps, prop.Name)
 		}

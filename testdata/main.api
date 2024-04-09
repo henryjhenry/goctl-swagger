@@ -1,0 +1,9 @@
+syntax = "v1"
+
+info(
+	title: "goctl swagger"
+)
+
+import (
+	"./api/test.api"
+)

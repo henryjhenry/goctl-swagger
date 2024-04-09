@@ -18,7 +18,6 @@ Thumbs.db
 #
 .swagger-codegen
 
-testdata
 tmp.json
 
 swagger.json

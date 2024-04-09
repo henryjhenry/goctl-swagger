@@ -1,0 +1,32 @@
+syntax = "v1"
+
+
+type (
+	FooInner {
+		Name string `json:"name"`// 名称
+		Code int    `json:"code"` // 编码
+		MetaData map[string]string `json:"metadata"` // MetaData
+	}
+
+	Foo {
+		FooInner
+	}
+
+	Item {
+		Id int
+	}
+
+	Bar {
+		Data []Item `json:"data"`
+	}
+)
+
+@server(
+	group: foo 
+	prefix: /foo/bar
+)
+service svc {
+	@doc "foo"
+	@handler FooHandler 
+	post / (Foo) returns (Bar)
+}

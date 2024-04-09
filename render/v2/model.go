@@ -70,18 +70,42 @@ func renderProperty(field spec.Member) Property {
 	} else if array, ok := asArrayType(typ); ok {
 		schema = renderArrayProperty(array)
 		schema.Description = parseComment(field.Comment) // reset description
-	} else {
-		schema = renderPrimitiveProperty(field)
+	} else if primitive, ok := asPrimitiveType(typ); ok {
+		schema = renderPrimitiveProperty(primitive)
+		if schema == nil {
+			panicUnsupportType(typ)
+		}
+		schema.Description = parseComment(field.Comment)
+	} else if mapType, ok := asMapType(typ); ok {
+		schema = renderMapTypeProperty(mapType)
+		schema.Description = parseComment(field.Comment)
 	}
 	if schema == nil {
-		return Property{}
+		panicUnsupportType(typ)
 	}
 	schema.required = !isOptionalTag(tag)
 	return Property{Name: tag.Name, Schema: schema}
 }
 
-func _renderPrimitiveProperty(typ spec.PrimitiveType) *Schema {
-	typS, format := rawTypeFormat(typ.Name())
+func renderMapTypeProperty(mapType spec.MapType) *Schema {
+	if mapType.Key != "string" {
+		panic("just support string type key on map")
+	}
+	valueType, ok := asPrimitiveType(mapType.Value)
+	if !ok {
+		panic("just support primitive type value on map")
+	}
+	valtyp, _ := primitiveTypeFormat(valueType.Name())
+	return &Schema{
+		Type: "object",
+		AdditionalProperties: &Schema{
+			Type: valtyp,
+		},
+	}
+}
+
+func renderPrimitiveProperty(typ spec.PrimitiveType) *Schema {
+	typS, format := primitiveTypeFormat(typ.Name())
 	if typS == "" {
 		return nil
 	}
@@ -91,8 +115,8 @@ func _renderPrimitiveProperty(typ spec.PrimitiveType) *Schema {
 	}
 }
 
-func renderPrimitiveProperty(field spec.Member) *Schema {
-	schema := _renderPrimitiveProperty(field.Type.(spec.PrimitiveType))
+func renderPrimitivePropertyByMember(field spec.Member) *Schema {
+	schema := renderPrimitiveProperty(field.Type.(spec.PrimitiveType))
 	if schema != nil {
 		schema.Description = parseComment(field.Comment)
 	}
@@ -114,8 +138,11 @@ func renderArrayProperty(array spec.ArrayType) *Schema {
 		_, items = renderSchema(stru)
 	} else if mArray, ok := asArrayType(memberTyp); ok {
 		items = renderArrayProperty(mArray)
-	} else {
-		items = _renderPrimitiveProperty(memberTyp.(spec.PrimitiveType))
+	} else if primitive, ok := asPrimitiveType(memberTyp); ok {
+		items = renderPrimitiveProperty(primitive)
+	}
+	if items == nil {
+		panicUnsupportType(memberTyp)
 	}
 	schema.Items = items
 	return schema

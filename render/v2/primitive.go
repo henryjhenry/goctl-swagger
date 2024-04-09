@@ -2,15 +2,15 @@ package v2
 
 type rawTypeFormatter func() (typ, format string)
 
-func rawTypeFormat(rawType string) (typ, format string) {
-	t, ok := rawTypeFormats[rawType]
+func primitiveTypeFormat(name string) (typ, format string) {
+	t, ok := primitiveTypeFormats[name]
 	if ok {
 		return t[0], t[1]
 	}
 	return "", ""
 }
 
-var rawTypeFormats = map[string][2]string{
+var primitiveTypeFormats = map[string][2]string{
 	"string":   {"string", ""},
 	"*string":  {"string", ""},
 	"int":      {"integer", "int"},

@@ -1,7 +1,6 @@
 package render
 
 import (
-	"os"
 	"testing"
 
 	"github.com/henryjhenry/goctl-swagger/render/types"
@@ -10,7 +9,7 @@ import (
 )
 
 func TestRender20(t *testing.T) {
-	apiPath := os.Getenv("GOCTL_API_PATH")
+	apiPath := "../testdata/main.api"
 	apiSpec, err := parser.Parse(apiPath)
 	if err != nil {
 		t.Fatal(err)
@@ -19,7 +18,7 @@ func TestRender20(t *testing.T) {
 		Api: apiSpec,
 		Dir: ".",
 	}
-	outsideSchema := os.Getenv("SWAGGER_OUTSIDE_SCHEMA")
+	outsideSchema := "../testdata/api/outside_schema.api"
 	opt := types.Option{
 		Target:        "../swagger.json",
 		Version:       "2.0",

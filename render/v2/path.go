@@ -121,7 +121,7 @@ func renderOutsideSchema(outSide spec.DefineStruct) *Schema {
 		if tag == nil || tag.Key != types.JsonTagKey {
 			continue
 		}
-		prop := Property{Name: tag.Name, Schema: renderPrimitiveProperty(field)}
+		prop := Property{Name: tag.Name, Schema: renderPrimitivePropertyByMember(field)}
 		properties = append(properties, prop)
 		if prop.Schema.required {
 			requiredProps = append(requiredProps, prop.Name)

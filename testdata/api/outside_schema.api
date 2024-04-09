@@ -1,0 +1,9 @@
+syntax = "v1"
+
+type Response {
+	Timestamp int64       `json:"timestamp"`      //消息响应时间戳
+	Code      int       `json:"code"`           //状态码
+	Msg       string      `json:"msg"`            //响应消息
+
+	RequestId string `json:"requestId,omitempty"` //请求链路ID
+}
