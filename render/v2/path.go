@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"bytes"
 	"net/http"
 	"strings"
 
@@ -26,6 +27,7 @@ func renderPaths(svc spec.Service, opt option) Paths {
 			if uri[0] != '/' {
 				uri = "/" + uri
 			}
+			uri = replacePath(uri)
 			// 确保rest api只生成一个 path
 			path, exists := pathSet[uri]
 			if !exists {
@@ -79,6 +81,36 @@ func renderPaths(svc spec.Service, opt option) Paths {
 	}
 	paths.Sort()
 	return paths
+}
+
+// replacePath replace :foo to {foo}
+func replacePath(uri string) string {
+	chars := []byte(uri)
+	buf := bytes.NewBuffer(make([]byte, 0, len(chars)))
+	for i := 0; i < len(chars); i++ {
+		if chars[i] != ':' {
+			buf.WriteByte(chars[i])
+			continue
+		}
+		// begin replace
+		buf.WriteByte('{')
+		for j := i + 1; j < len(chars); j++ {
+			if chars[j] != '/' {
+				buf.WriteByte(chars[j])
+
+				// end of uri
+				if j == len(chars)-1 {
+					buf.WriteByte('}')
+					return buf.String()
+				}
+				continue
+			}
+			buf.Write([]byte{'}', '/'})
+			i = j
+			break
+		}
+	}
+	return buf.String()
 }
 
 func renderReponse(opt option, obj spec.DefineStruct) (root *Schema) {

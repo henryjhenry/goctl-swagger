@@ -1,9 +1,10 @@
 syntax = "v1"
 
-info(
+info (
 	title: "goctl swagger"
 )
 
 import (
 	"./api/test.api"
 )
+
