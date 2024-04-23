@@ -40,13 +40,12 @@ func renderPaths(svc spec.Service, opt option) Paths {
 				Tags:    []string{tags},
 			}
 			if obj, ok := route.RequestType.(spec.DefineStruct); ok {
-				op.Parameters = renderParameters(obj, strings.ToUpper(route.Method))
+				op.Parameters = renderParameters(obj)
 			}
 
 			// Just support json response.
 			if obj, ok := route.ResponseType.(spec.DefineStruct); ok {
 				// root schema
-
 				op.Responses = map[string]*Response{
 					"200": {
 						Description: "OK",
@@ -118,7 +117,7 @@ func renderReponse(opt option, obj spec.DefineStruct) (root *Schema) {
 	ref := registerModel(obj.Name(), resp)
 	if opt.outsideSchema != nil {
 		root = renderOutsideSchema(*opt.outsideSchema)
-		root.Properties = append(root.Properties, Property{"data", &Schema{
+		root.Properties = append(root.Properties, Property{opt.ResponseKey, &Schema{
 			Type: "object",
 			Ref:  ref,
 		}})

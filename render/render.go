@@ -25,6 +25,9 @@ func Render(plg *plugin.Plugin, opt types.Option) error {
 	if len(opt.Schemes) == 0 {
 		opt.Schemes = []string{"http"}
 	}
+	if opt.ResponseKey == "" {
+		opt.ResponseKey = "data"
+	}
 	renderer = getRenderer(opt.Version)
 	swagger, err := renderer.Render(plg, opt)
 	if err != nil {
@@ -84,6 +87,7 @@ func Do(ctx *cli.Context) error {
 	scheme := ctx.String("schemes")
 	tagPrefix := ctx.String("tagPrefix")
 	osc := ctx.String("outsideSchema")
+	responseKey := ctx.String("reponseKey")
 
 	var schemes []string
 	if len(scheme) > 0 {
@@ -98,6 +102,7 @@ func Do(ctx *cli.Context) error {
 		RenderType:    "json", // TODO: make configurable
 		TagPrefix:     tagPrefix,
 		OutsideSchema: osc,
+		ResponseKey:   responseKey,
 	}
 	p, err := plugin.NewPlugin()
 	if err != nil {

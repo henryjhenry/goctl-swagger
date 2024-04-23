@@ -59,7 +59,7 @@ func flatten(obj spec.DefineStruct) *members {
 	return &members{pathMembers: pathMembers, queryMembers: queryMembers, bodyMembers: bodyMembers}
 }
 
-func renderParameters(obj spec.DefineStruct, method string) []*Parameter {
+func renderParameters(obj spec.DefineStruct) []*Parameter {
 	members := flatten(obj)
 	params := make([]*Parameter, 0, len((*members).pathMembers)+len((*members).queryMembers)+1)
 	pathParams := renderPathParameters((*members).pathMembers)

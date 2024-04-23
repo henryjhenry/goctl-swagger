@@ -25,11 +25,11 @@ var (
 				},
 				&cli.StringFlag{
 					Name:  "basePath",
-					Usage: "url request prefix",
+					Usage: "api request prefix",
 				},
 				&cli.StringFlag{
 					Name:  "target",
-					Usage: "swagger save file name",
+					Usage: "swagger save file name, default: ./swagger.json",
 				},
 				&cli.StringFlag{
 					Name:  "schemes",
@@ -42,6 +42,10 @@ var (
 				&cli.StringFlag{
 					Name:  "outsideSchema",
 					Usage: "add outside schema api file",
+				},
+				&cli.StringFlag{
+					Name:  "responseKey",
+					Usage: "special response data key when outsideSchema is set, default: data",
 				},
 			},
 		},

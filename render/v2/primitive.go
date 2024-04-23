@@ -1,7 +1,5 @@
 package v2
 
-type rawTypeFormatter func() (typ, format string)
-
 func primitiveTypeFormat(name string) (typ, format string) {
 	t, ok := primitiveTypeFormats[name]
 	if ok {

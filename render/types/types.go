@@ -13,6 +13,7 @@ type Option struct {
 	Target        string
 	TagPrefix     string
 	OutsideSchema string
+	ResponseKey   string
 }
 
 type Renderer interface {

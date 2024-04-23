@@ -20,12 +20,13 @@ func TestRender20(t *testing.T) {
 	}
 	outsideSchema := "../testdata/api/outside_schema.api"
 	opt := types.Option{
-		Target:        "../swagger.json",
+		Target:        "../testdata/swagger.json",
 		Version:       "2.0",
 		RenderType:    "json",
 		TagPrefix:     "",
 		OutsideSchema: outsideSchema,
 		Host:          "127.0.0.1:8888",
+		ResponseKey:   "response",
 	}
 	if err := Render(plg, opt); err != nil {
 		t.Fatal(err)
