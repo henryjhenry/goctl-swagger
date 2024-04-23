@@ -1,0 +1,124 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "goctl swagger",
+    "version": ""
+  },
+  "host": "127.0.0.1:8888",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/foo/bar/{id}/children/{cid}": {
+      "post": {
+        "tags": [
+          "foo"
+        ],
+        "summary": "foo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int"
+          },
+          {
+            "in": "path",
+            "name": "cid",
+            "required": true,
+            "type": "integer",
+            "format": "int"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Foo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "description": "消息响应时间戳",
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "code": {
+                  "description": "状态码",
+                  "type": "integer",
+                  "format": "int"
+                },
+                "msg": {
+                  "description": "响应消息",
+                  "type": "string"
+                },
+                "requestId": {
+                  "description": "请求链路ID",
+                  "type": "string"
+                },
+                "response": {
+                  "$ref": "#/definitions/Bar",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Bar": {
+      "type": "object",
+      "required": [
+        "data"
+      ],
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "Foo": {
+      "type": "object",
+      "required": [
+        "name",
+        "code",
+        "metadata"
+      ],
+      "properties": {
+        "name": {
+          "description": "名称",
+          "type": "string"
+        },
+        "code": {
+          "description": "编码",
+          "type": "integer",
+          "format": "int"
+        },
+        "metadata": {
+          "description": "MetaData",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
