@@ -1,6 +1,21 @@
 # goctl-swagger
-从 https://github.com/zeromicro/goctl-swagger FORK，但原项目有 bug 且不好修，干脆直接重构一版，目前只支持 swagger v2，预计未来
-支持v3，并支持更灵活的参数
+一个根据 `gozero` API描述文件生成 `swagger` 文档的插件。
+基于:
+```bash
+go:     1.19  # 及以上
+gozero: 1.6.0 # 及以上
+```
+
+支持功能:
+- [x] 自定义 `tag` 前缀 
+- [x] 自定义外层响应
+- [x] 在外层响应中指定响应数据的key
+
+暂不支持:
+1. 根据 `tag` 中的 `validate` 标签生成相应的文档 
+
+## 使用指南
+
 ### 1. 编译goctl-swagger插件
 
 ```
@@ -13,120 +28,42 @@ GOPROXY=https://goproxy.cn/,direct go install github.com/henryjhenry/goctl-swagg
 
 ### 3. 使用姿势
 
-* 创建api文件
+#### 生成 swagger.json 文件
+```shell script
+# 在goctl中使用
+goctl api plugin -plugin goctl-swagger="swagger -target swagger.json" -api your.api -dir .
 
-    ```go
-    info(
-     title: "type title here"
-     desc: "type desc here"
-     author: "type author here"
-     email: "type email here"
-     version: "type version here"
-    )
-    
-    
-    type (
-     RegisterReq {
-      Username string `json:"username"`
-      Password string `json:"password"`
-      Mobile string `json:"mobile"`
-     }
-     
-     LoginReq {
-      Username string `json:"username"`
-      Password string `json:"password"`
-     }
-     
-     UserInfoReq {
-      Id string `path:"id"`
-     }
-     
-     UserInfoReply {
-      Name string `json:"name"`
-      Age int `json:"age"`
-      Birthday string `json:"birthday"`
-      Description string `json:"description"`
-      Tag []string `json:"tag"`
-     }
-     
-     UserSearchReq {
-      KeyWord string `form:"keyWord"`
-     }
-    )
-    
-    service user-api {
-     @doc(
-      summary: "注册"
-     )
-     @handler register
-     post /api/user/register (RegisterReq)
-     
-     @doc(
-      summary: "登录"
-     )
-     @handler login
-     post /api/user/login (LoginReq)
-     
-     @doc(
-      summary: "获取用户信息"
-     )
-     @handler getUserInfo
-     get /api/user/:id (UserInfoReq) returns (UserInfoReply)
-     
-     @doc(
-      summary: "用户搜索"
-     )
-     @handler searchUser
-     get /api/user/search (UserSearchReq) returns (UserInfoReply)
-    }
-    ```
+# 在本地使用
+go run main.go swagger -target swagger.json 0<~/tmp.json
+# 或
+goctl-swagger swagger -target swagger.json 0<~/tmp.json
+```
+tmp.json:
+```json
+{
+    "ApiFilePath": "your.api",
+    "Dir": "working dir"
+}
+```
 
-* 生成 swagger.json 文件
-    ```shell script
-        # 在goctl中使用
-        goctl api plugin -plugin goctl-swagger="swagger -target swagger.json" -api user.api -dir .
+#### 指定Host，basePath，schemes [api-host-and-base-path](https://swagger.io/docs/specification/2-0/api-host-and-base-path/)
+```shell script
+goctl api plugin -plugin goctl-swagger="swagger -target swagger.json -host 127.0.0.2 -basepath /api -schemes https,wss" -api your.api -dir .
+```
 
-        # 在本地使用
-        go run main.go swagger -target swagger.json 0<~/tmp.json
-    ```
-    tmp.json:
-    ```json
-    {
-        "ApiFilePath": "your.api",
-        "Dir": "."
-    }
-    ```
+#### 指定外层响应
+```shell script
+goctl api plugin -plugin goctl-swagger="swagger -target swagger.json -outsideSchema ./outsideSchema.api" -api your.api -dir .
+```
+外层响应示例见 `testdata/api/outside_schema.api`
 
-* 指定Host，basePath，schemes [api-host-and-base-path](https://swagger.io/docs/specification/2-0/api-host-and-base-path/)
+`goctl-swagger` 会解析并使用指定的 `outsideSchema` 文件并使用第一个声明作为外层响应，并默认使用 `data` 作为内层响应的key，如果需要自定义，请加上 `-responseKey` 参数，例如：`-responseKey response`
 
-    ```shell script
-    goctl api plugin -plugin goctl-swagger="swagger -target user.json -host 127.0.0.2 -basepath /api -schemes https,wss" -api user.api -dir .
-    ```
-
-* swagger ui 查看生成的文档
-
-    ```shell script
-     docker run --rm -p 8083:8080 -e SWAGGER_JSON=/foo/user.json -v $PWD:/foo swaggerapi/swagger-ui
-   ```
-
-* swagger Codegen 生成客户端调用代码(go,javascript,php)
-
-  ```shell script
-  for l in go javascript php; do
-    docker run --rm -v "$(pwd):/go-work" swaggerapi/swagger-codegen-cli generate \
-      -i "/go-work/rest.swagger.json" \
-      -l "$l" \
-      -o "/go-work/clients/$l"
-  done
-   ```
 
 ### 4. run test
 ```bash
-cd goctl-swagger
-export GOCTL_API_PATH=/your/api/path
-export SWAGGER_OUTSIDE_SCHEMA=/your/outside_schema/path
 go test ./render --count=1 -v
 ``` 
-运行完毕后，会生成 swagger.json。
+运行完毕后，会在 `testdata` 目录生成 `swagger.json`。可使用IDE对应的插件或自建服务查看文档。(JetBrains已原生支持，VS Code推荐: OpenAPI (Swagger) Editor)
 
-暂未实现对生成文件的校验。
+**如有feature或bug，欢迎提交issue 👏🏻**
